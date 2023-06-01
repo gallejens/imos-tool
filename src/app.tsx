@@ -3,6 +3,11 @@ import { FileButton, Button, Notification, Paper } from '@mantine/core';
 import { readString } from 'react-papaparse';
 import { useMainStore } from './stores/useMainStore';
 import { processCSV } from './lib/csvProcessing';
+import { saveAs } from 'file-saver';
+import * as XLSX from 'xlsx';
+
+const FILE_TYPE = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8';
+const FILE_EXTENSION = 'xlsx';
 
 const App: FC = () => {
   const { setData, error, setError, clearError } = useMainStore();
@@ -15,8 +20,15 @@ const App: FC = () => {
         complete: results => {
           try {
             const data = processCSV(results.data as string[][]);
-            console.log(data);
-            // setData(data);
+
+            for (const [material, values] of Object.entries(data)) {
+              const worksheet = XLSX.utils.aoa_to_sheet(values);
+              console.log(worksheet);
+              const workbook = { Sheets: { data: worksheet }, SheetNames: [material] };
+              const excelBuffer = XLSX.write(workbook, { bookType: 'biff8', type: 'array' });
+              const data = new Blob([excelBuffer], { type: 'application/vnd.ms-excel' });
+              saveAs(data, `TEST ${material}.xls`);
+            }
           } catch (e: unknown) {
             setError(e instanceof Error ? e.message : 'Unknown error');
           }

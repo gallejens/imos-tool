@@ -14,6 +14,8 @@ const ALLOWED_MERGE_CHARACTERS: [string, string][] = [
   ['V', 'A'],
 ];
 
+type CSVRow = number | string;
+
 export const processCSV = (csv: string[][]) => {
   if (!csv || !Array.isArray(csv)) throw new Error('Invalid CSV file');
 
@@ -23,11 +25,19 @@ export const processCSV = (csv: string[][]) => {
   const columnAmount = csv[0].length;
   if (csv.some(r => r.length !== columnAmount)) throw new Error('Not all rows have the same amount of columns');
 
-  const mergedRows: (string | string[])[][] = [];
+  // Parse number rows to actual numbers
+  const parsedCSV: CSVRow[][] = csv.map(r =>
+    r.map(v => {
+      const n = Number(v);
+      return isNaN(n) ? v : n;
+    })
+  );
+
+  const mergedRows: (CSVRow | string[])[][] = [];
 
   // Merge data and populate new rows
-  for (let y = 0; y < csv.length; y++) {
-    const row = csv[y];
+  for (let y = 0; y < parsedCSV.length; y++) {
+    const row = parsedCSV[y];
 
     // find idx of row in newrows array that has same unique fields
     const existingRowIdx = mergedRows.findIndex(r => UNIQUE_INDICES.every(j => row[j] === r[j]));
@@ -41,7 +51,7 @@ export const processCSV = (csv: string[][]) => {
     const existingRow = mergedRows[existingRowIdx];
 
     // increase amount
-    existingRow[AMOUNT_INDEX] = String(Number(existingRow[AMOUNT_INDEX]) + 1);
+    existingRow[AMOUNT_INDEX] = Number(existingRow[AMOUNT_INDEX]) + 1;
 
     // create new label
     const existingLabels = existingRow[LABEL_INDEX];
@@ -68,7 +78,7 @@ export const processCSV = (csv: string[][]) => {
       throw new Error(`Label ${labels} was not a string after concat`);
     }
 
-    // if statement above catches errors so we can cast
+    // if-statement above catches errors so we can cast
     finalRows.push(finalRow as string[]);
   }
 
