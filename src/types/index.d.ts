@@ -1,9 +1,12 @@
 declare namespace Main {
   type State = {
-    count: number;
+    error: string | null;
+    data: Record<string, string[][]>;
   };
 
   type StateActions = {
-    increaseCount: () => void;
+    setError: (error: string) => void;
+    clearError: () => void;
+    setData: (data: State['data']) => void;
   };
 }
