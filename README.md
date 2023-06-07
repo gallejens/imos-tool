@@ -1,1 +1,1 @@
-# imos-import-tool
+# imos-tool
