@@ -22,12 +22,10 @@ const App: FC = () => {
             const data = processCSV(results.data as string[][]);
 
             for (const [material, values] of Object.entries(data)) {
+              const workbook = XLSX.utils.book_new();
               const worksheet = XLSX.utils.aoa_to_sheet(values);
-              console.log(worksheet);
-              const workbook = { Sheets: { data: worksheet }, SheetNames: [material] };
-              const excelBuffer = XLSX.write(workbook, { bookType: 'biff8', type: 'array' });
-              const data = new Blob([excelBuffer], { type: 'application/vnd.ms-excel' });
-              saveAs(data, `TEST ${material}.xls`);
+              XLSX.utils.book_append_sheet(workbook, worksheet, material);
+              XLSX.writeFile(workbook, `TEST ${material}.xls`);
             }
           } catch (e: unknown) {
             setError(e instanceof Error ? e.message : 'Unknown error');
